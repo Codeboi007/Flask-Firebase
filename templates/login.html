@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pyrebase-Flask-Login</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+    <!-- Google Identity Services SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+<div class="wrapper fadeInDown">
+  <div id="formContent">
+    <!-- Tabs Titles -->
+    <h2 class="active"> Sign In </h2>
+    <a href="{{ url_for('signup') }}"><h2 class="inactive underlineHover">Sign Up </h2></a>
+
+    <!-- Icon -->
+    <div class="fadeIn first">
+      <img src="{{ url_for('static', filename='user.png') }}" id="icon" alt="User Icon" />
+    </div>
+
+    <!-- Login Form -->
+    <form action="{{ url_for('handle_login') }}" method="POST">
+      <input type="email" id="login" class="fadeIn second" name="email" placeholder="Email" required>
+      <input type="password" id="password" class="fadeIn third" name="password" placeholder="Password" required>
+      <input type="submit" class="fadeIn fourth" value="Log In">
+    </form>
+
+    <!-- Google Sign-In Button -->
+    <div class="google-signin">
+      <div id="g_id_onload"
+           data-client_id="879193104304-s8j0id9hf0jtdtpaorn7ujo1dcdmu3t8.apps.googleusercontent.com"
+           data-context="signin"
+           data-ux_mode="popup"
+           data-callback="handleGoogleSignIn">
+      </div>
+      <div class="g_id_signin"
+           data-type="standard"
+           data-shape="rectangular"
+           data-theme="outline"
+           data-text="signin_with"
+           data-size="large"
+           data-logo_alignment="left">
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Firebase Initialization -->
+<script>
+  // Google Sign-In handler
+  function handleGoogleSignIn(response) {
+    fetch("{{ url_for('verify_google_token') }}", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: response.credential })
+    })
+    .then(response => {
+      if (response.ok) window.location.href = "{{ url_for('welcome') }}";
+      else alert('Authentication failed');
+    });
+  }
+</script>
+
+</body>
+</html>
