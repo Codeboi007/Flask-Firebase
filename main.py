@@ -1,17 +1,20 @@
 import firebase_admin
 from firebase_admin import credentials, auth, firestore
 from flask import Flask, session, redirect, url_for, request, render_template, jsonify
+from flask_cors import CORS # type: ignore
 import requests
 import os
+import logging
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Required for session
+CORS(app, origins=["http://127.0.0.1:5000", "http://localhost:5000"],supports_credentials=True)
 
 # Initialize Firebase Admin SDK
-cred = credentials.Certificate('instance/flask-f81f6-firebase-adminsdk-fbsvc-cdfa7b61d0.json')
+cred = credentials.Certificate('flask-f81f6-firebase-adminsdk-fbsvc-35a9d7acaf.json')
 firebase_admin.initialize_app(cred, {
     'projectId': 'flask-f81f6',
-    'storageBucket': 'flask-f81f6.appspot.com'
+    'storageBucket': 'flask-f81f6.firebasestorage.app'
 })
 db = firestore.client()
 
@@ -123,41 +126,61 @@ def handle_register():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+# Enable detailed logging
+logging.basicConfig(level=logging.DEBUG)
+
 @app.route('/verify-google-token', methods=['POST'])
 def verify_google_token():
     try:
-        # Get the ID token from the client
+        # Step 1: Get the token from the frontend
         id_token = request.json.get('token')
         if not id_token:
-            return jsonify({'error': 'Token required'}), 400
+            logging.error("No token received from client")
+            return jsonify({'error': 'Missing ID token'}), 400
 
-        # Verify the token with Firebase Admin
-        decoded_token = auth.verify_id_token(id_token)
-        uid = decoded_token['uid']
-        email = decoded_token['email']
+        logging.info(f"Received ID token: {id_token}")
+
+        # Step 2: Verify the token with Firebase Admin SDK
+        try:
+            decoded_token = auth.verify_id_token(id_token)
+        except ValueError as e:
+            logging.error(f"Token verification failed: {str(e)}")
+            return jsonify({'error': 'Invalid or expired token'}), 401
+
+        logging.info(f"Decoded token: {decoded_token}")
+
+        # Step 3: Extract user info
+        uid = decoded_token.get('uid')
+        email = decoded_token.get('email')
         name = decoded_token.get('name', 'User')
 
-        # Check if user exists in Firestore (optional)
+        if not uid or not email:
+            logging.error("Decoded token is missing required claims")
+            return jsonify({'error': 'Invalid token claims'}), 401
+
+        # Step 4: Check if user exists in Firestore (optional)
         user_doc = db.collection('users').document(uid).get()
         if not user_doc.exists:
-            # Create user in Firestore if not exists
             db.collection('users').document(uid).set({
                 'name': name,
                 'email': email,
                 'created_at': firestore.SERVER_TIMESTAMP
             })
 
-        # Store user info in session
+        # Step 5: Store user info in session
         session['user'] = {
             'uid': uid,
             'email': email,
             'name': name,
             'id_token': id_token
         }
+        logging.info(f"User {email} authenticated successfully")
         return jsonify({'success': True}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 401
 
+    except Exception as e:
+        logging.error(f"Unexpected error: {str(e)}")
+        return jsonify({'error': 'Authentication failed'}), 500
+    
 # Logout route
 @app.route("/logout")
 def logout():

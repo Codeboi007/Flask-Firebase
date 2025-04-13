@@ -3,8 +3,12 @@
 <head>
     <title>Pyrebase-Flask-Login</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
     <!-- Google Identity Services SDK -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+   
 </head>
 <body>
 <div class="wrapper fadeInDown">
@@ -28,7 +32,7 @@
     <!-- Google Sign-In Button -->
     <div class="google-signin">
       <div id="g_id_onload"
-           data-client_id="879193104304-s8j0id9hf0jtdtpaorn7ujo1dcdmu3t8.apps.googleusercontent.com"
+           data-client_id="496944624582-3qdkkaso4e6cbbplasud1j3cmbf6nv4s.apps.googleusercontent.com"
            data-context="signin"
            data-ux_mode="popup"
            data-callback="handleGoogleSignIn">
@@ -37,7 +41,7 @@
            data-type="standard"
            data-shape="rectangular"
            data-theme="outline"
-           data-text="signin_with"
+           data-text="sign_in_with"
            data-size="large"
            data-logo_alignment="left">
       </div>
@@ -48,6 +52,20 @@
 
 <!-- Firebase Initialization -->
 <script>
+  // Initialize Firebase
+  const firebaseConfig = {
+  apiKey: "AIzaSyDRW_XVHzGuTkaO_LKQYw6sz7IZF0LiAAY",
+  authDomain: "flask-f81f6.firebaseapp.com",
+  projectId: "flask-f81f6",
+  storageBucket: "flask-f81f6.firebasestorage.app",
+  messagingSenderId: "496944624582",
+  appId: "1:496944624582:web:6ce243683ee206312df8c7",
+  measurementId: "G-9KDCEJLMTZ"
+};
+  const app = firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  console.log("Firebase initialized:", app);
+
   // Google Sign-In handler
   function handleGoogleSignIn(response) {
     fetch("{{ url_for('verify_google_token') }}", {
@@ -60,6 +78,8 @@
       else alert('Authentication failed');
     });
   }
+
+
 </script>
 
 </body>
