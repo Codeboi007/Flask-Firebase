@@ -15,7 +15,7 @@
   <div id="formContent">
     <!-- Tabs Titles -->
     <h2 class="active"> Sign In </h2>
-    <a href="{{ url_for('signup') }}"><h2 class="inactive underlineHover">Sign Up </h2></a>
+    <a href="{{ url_for('auth.handle_register') }}"><h2 class="inactive underlineHover">Sign Up </h2></a>
 
     <!-- Icon -->
     <div class="fadeIn first">
@@ -23,7 +23,7 @@
     </div>
 
     <!-- Login Form -->
-    <form action="{{ url_for('handle_login') }}" method="POST">
+    <form action="{{ url_for('auth.handle_login') }}" method="POST">
       <input type="email" id="login" class="fadeIn second" name="email" placeholder="Email" required>
       <input type="password" id="password" class="fadeIn third" name="password" placeholder="Password" required>
       <input type="submit" class="fadeIn fourth" value="Log In">
@@ -67,7 +67,7 @@
 
   // Google Sign-In handler
   function handleGoogleSignIn(response) {
-    fetch("{{ url_for('verify_google_token') }}", {
+    fetch("{{ url_for('auth.verify_google_token') }}", {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token: response.credential })
