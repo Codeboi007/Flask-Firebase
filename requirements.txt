@@ -2,3 +2,6 @@ flask
 firebase_admin
 requests
 flask-cors
+google-auth 
+google-auth-oauthlib 
+google-auth-httplib2
